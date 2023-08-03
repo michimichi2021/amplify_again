@@ -15,8 +15,10 @@
             <button v-on:click="ClickCreate">Create Todo</button>
           </div>
           <div v-for="item in todos" :key="item.id">
+            <p>{{ item.id }}</p>
             <h3>{{ item.name }}</h3>
             <p>{{ item.description }}</p>
+            <button v-on:click="ClickDelete">Delete Todo</button>
           </div>
         </div>
       </template>
@@ -26,8 +28,11 @@
 
 <script setup lang="ts">
 import { API } from 'aws-amplify'
-import { ref } from 'vue'
-import { createTodo } from './graphql/mutations'
+import { GraphQLQuery } from '@aws-amplify/api'
+import { ref, onBeforeUnmount } from 'vue'
+import { createTodo, deleteTodo} from './graphql/mutations'
+import { DeleteTodoInput, DeleteTodoMutation } from './API'
+import { onCreateTodo } from './graphql/subscriptions'
 import { Authenticator } from '@aws-amplify/ui-vue'
 import '@aws-amplify/ui-vue/styles.css'
 import { listTodos } from './graphql/queries'
@@ -38,9 +43,11 @@ type Todo = {
   description: string
 }
 
+// reactiveにあとで直す
 const name = ref('')
 const description = ref('')
 const todos = ref<Todo[]>([])
+let subscription: { unsubscribe: () => void }
 
 const ClickCreate = async () => {
   if (!name.value || !description.value) return
@@ -63,5 +70,52 @@ const getTodos = async () => {
     todos.value = []
   }
 }
+
+// idにもとの値を入れればデータからは消える、idの値の取り方を見つける
+// ただしリアルなデータが画面で全て更新されない、リロードしたら更新される
+const ClickDelete = async () => {
+  const todoDetails: DeleteTodoInput = {
+    id: '25627473-27d8-45e4-a697-d72a4d794fd5'
+  }
+  if (!confirm('このTodoを削除してもいいですか?')) return
+  await API.graphql<GraphQLQuery<DeleteTodoMutation>>({
+    query: deleteTodo,
+    variables: { input: todoDetails }
+  })
+}
+
+const subscribeToDo = async () => {
+  // Subscription(onCreateMessages) の実装 1 ↓
+  subscription = API.graphql({ query: onCreateTodo }).subscribe({
+    next: (eventData: any) => {
+      let todo = eventData.value.data.onCreateTodo
+      todos.value = [...todos.value, todo]
+    },
+    error: (error: any) => {
+      console.warn(error)
+    }
+  })
+}
+
+onBeforeUnmount(() => {
+  if (subscription) {
+    // Subscription(onCreateMessages) の実装
+    subscription.unsubscribe()
+  }
+})
+
 getTodos()
+subscribeToDo()
+
+// const updatedTodo = async () =>{
+//   const todoDetails: UpdateTodoInput = {
+//   id: 'some_id',
+//   name: 'Updated description',
+//   description: 'Updated description'
+//   };
+//   await API.graphql<GraphQLQuery<UpdateTodoMutation>>({
+//   query: updateTodo,
+//   variables: { input: todoDetails }
+//   });
+// }
 </script>
