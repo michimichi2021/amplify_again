@@ -17,6 +17,12 @@
           "appId": "dh9wt2ib5qfxu",
           "type": "manual"
         }
+      },
+      "api": {
+        "amplifyagain2": {}
+      },
+      "auth": {
+        "amplifyagain2259d4589": {}
       }
     }
   }
