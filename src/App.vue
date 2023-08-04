@@ -1,26 +1,43 @@
 <template>
-  <div id="app">
+  <div id="app" class="mx-auto mt-5">
     <authenticator>
       <template v-slot="{ user, signOut }">
-        <div class="container">
-          <div class="title">
-            <h1>Hello {{ user.username }}!</h1>
-            <br />
-            <button @click="signOut">Sign Out</button>
-            <h1>Todo App</h1>
-          </div>
-          <div>
-            <input type="text" v-model="name" placeholder="Todo name" />
-            <input type="text" v-model="description" placeholder="Todo description" />
-            <button v-on:click="ClickCreate">Create Todo</button>
-          </div>
-          <div v-for="item in todos" :key="item.id">
-            <p>{{ item.id }}</p>
-            <h3>{{ item.name }}</h3>
-            <p>{{ item.description }}</p>
-            <button v-on:click="ClickDelete">Delete Todo</button>
-          </div>
-        </div>
+        <v-title :class="['text-h6']"> Hello {{ user.username }}! </v-title>
+        <v-btn @click="signOut">Sign Out</v-btn>
+        <v-card class="mx-auto mt-10" max-width="1000">
+          <v-card-title class="text-center">Todo App</v-card-title>
+          <v-form>
+            <v-container>
+              <v-row>
+                <v-col cols="12" md="6">
+                  <v-text-field v-model="name" :counter="10" label="題名" required></v-text-field>
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="description"
+                    :counter="10"
+                    label="内容"
+                    required
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+              <v-btn v-on:click="ClickCreate">Create Todo</v-btn>
+            </v-container>
+          </v-form>
+          <v-toolbar color="cyan-lighten-1">
+            <v-btn variant="text" icon="mdi-menu"></v-btn>
+            <v-toolbar-title>todoリスト</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn variant="text" icon="mdi-magnify"></v-btn>
+          </v-toolbar>
+          <v-list-item
+            v-for="folder in todos"
+            :key="folder.name"
+            :title="folder.id + folder.name"
+            :subtitle="folder.description"
+          />
+        </v-card>
       </template>
     </authenticator>
   </div>
@@ -28,10 +45,9 @@
 
 <script setup lang="ts">
 import { API } from 'aws-amplify'
-import { GraphQLQuery } from '@aws-amplify/api'
 import { ref, onBeforeUnmount } from 'vue'
-import { createTodo, deleteTodo} from './graphql/mutations'
-import { DeleteTodoInput, DeleteTodoMutation } from './API'
+import { createTodo, deleteTodo } from './graphql/mutations'
+import type { DeleteTodoInput, DeleteTodoMutation } from './API'
 import { onCreateTodo } from './graphql/subscriptions'
 import { Authenticator } from '@aws-amplify/ui-vue'
 import '@aws-amplify/ui-vue/styles.css'
@@ -47,7 +63,7 @@ type Todo = {
 const name = ref('')
 const description = ref('')
 const todos = ref<Todo[]>([])
-let subscription: { unsubscribe: () => void }
+// let subscription: { unsubscribe: () => void }
 
 const ClickCreate = async () => {
   if (!name.value || !description.value) return
@@ -61,7 +77,7 @@ const ClickCreate = async () => {
 }
 
 const getTodos = async () => {
-  const result = await API.graphql({
+  const result: any = await API.graphql({
     query: listTodos
   })
   if (result.data?.listTodos) {
@@ -75,10 +91,10 @@ const getTodos = async () => {
 // ただしリアルなデータが画面で全て更新されない、リロードしたら更新される
 const ClickDelete = async () => {
   const todoDetails: DeleteTodoInput = {
-    id: '25627473-27d8-45e4-a697-d72a4d794fd5'
+    id: '0d316c94-40ed-4d92-992d-23db8b8450dd'
   }
   if (!confirm('このTodoを削除してもいいですか?')) return
-  await API.graphql<GraphQLQuery<DeleteTodoMutation>>({
+  await API.graphql<DeleteTodoMutation>({
     query: deleteTodo,
     variables: { input: todoDetails }
   })
