@@ -31,12 +31,12 @@
             <v-btn variant="text" icon="mdi-magnify"></v-btn>
           </v-toolbar>
           <v-list-item
-            v-for="folder in todos"
-            :key="folder.name"
-            :title="folder.id + folder.name"
-            :subtitle="folder.description"
+            v-for="todo in todos"
+            :key="todo.id"
+            :title="todo.id + todo.name"
+            :subtitle="todo.description"
           >
-            <v-btn v-on:click="ClickDelete">削除</v-btn>
+            <v-btn v-on:click="ClickDelete(todo.id)">削除</v-btn>
           </v-list-item>
         </v-card>
       </template>
@@ -48,29 +48,20 @@
 import { API } from 'aws-amplify'
 import { ref } from 'vue'
 import { createTodo, deleteTodo } from './graphql/mutations'
-import type {
-  CreateTodoMutation,
-  DeleteTodoInput,
-  DeleteTodoMutation,
-  UpdateTodoInput,
-  UpdateTodoMutation
-} from './API'
+import type { CreateTodoMutation, DeleteTodoInput, DeleteTodoMutation } from './API'
 import { Authenticator } from '@aws-amplify/ui-vue'
 import '@aws-amplify/ui-vue/styles.css'
 import { listTodos } from './graphql/queries'
 import { GraphQLQuery } from '@aws-amplify/api'
 
 type Todo = {
-  id: number
+  id: string
   name: string
-  description: string
+  description?: string | null
 }
-
-// reactiveにあとで直す
 const name = ref('')
 const description = ref('')
 const todos = ref<Todo[]>([])
-// let subscription: { unsubscribe: () => void }
 
 const getTodos = async () => {
   const result: any = await API.graphql({
@@ -90,35 +81,23 @@ const ClickCreate = async () => {
     query: createTodo,
     variables: { input: todo }
   })
+  getTodos()
   name.value = ''
   description.value = ''
 }
-getTodos()
 
-// idにもとの値を入れればデータからは消える、idの値の取り方を見つける
-// ただしリアルなデータが画面で全て更新されない、リロードしたら更新される
-const todoDetails: DeleteTodoInput = {
-  id: '3ce4fa50-a605-4cf8-bf29-ca33c97211ea'
-}
-
-const ClickDelete = async () => {
+const ClickDelete = async (todoId: string) => {
   if (!confirm('このTodoを削除してもいいですか?')) return
-  await API.graphql<GraphQLQuery<DeleteTodoMutation>>({
+  const todoDetails: DeleteTodoInput = {
+    id: todoId
+  }
+
+  const result = await API.graphql<GraphQLQuery<DeleteTodoMutation>>({
     query: deleteTodo,
     variables: { input: todoDetails }
   })
+  let todo = result.data.deleteTodo
+  todos.value = todos.value.filter((td) => td.id != todo.id)
 }
-
-// const updatedTodo = async () => {
-//   const todoDetails: UpdateTodoInput = {
-//     id: 'some_id',
-//     name: 'Updated description',
-//     description: 'Updated description'
-//   }
-//   await API.graphql<GraphQLQuery<UpdateTodoMutation>>({
-//     query: updateTodo,
-//     variables: { input: todoDetails }
-//   })
-// }
-// // const song = response?.data?.createSong;
+getTodos()
 </script>
