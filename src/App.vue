@@ -3,7 +3,7 @@
     <authenticator>
       <template v-slot="{ user, signOut }">
         <v-title> Hello {{ user.username }}! </v-title>
-        <v-btn @click="signOut">Sign Out</v-btn>
+        <v-btn v-on:click="signOut">Sign Out</v-btn>
         <v-card class="mx-auto mt-10" max-width="1000">
           <v-card-title class="text-center">Todo App</v-card-title>
           <v-form>
@@ -26,17 +26,28 @@
           </v-form>
           <v-toolbar color="cyan-lighten-1">
             <v-btn variant="text" icon="mdi-menu"></v-btn>
-            <v-toolbar-title>todoリスト</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-btn variant="text" icon="mdi-magnify"></v-btn>
           </v-toolbar>
-          <v-list-item
-            v-for="todo in todos"
-            :key="todo.id"
-            :title="todo.id + todo.name"
-            :subtitle="todo.description"
-          >
-            <v-btn v-on:click="ClickDelete(todo.id)">削除</v-btn>
+          <v-card-title class="text-center">実行中</v-card-title>
+          <v-list-item v-for="todo in todos" :key="todo.id">
+            <v-li class="list-group-item list-group-item-action" v-if="!todo.completed">
+              題名:{{ todo.name }}
+              <hr />
+              内容:{{ todo.description }}
+              <hr />
+              <v-btn v-if="!todo.completed" v-on:click="CompletedTodo(todo)">完了</v-btn>
+            </v-li>
+          </v-list-item>
+          <v-card-title class="text-center">完了済み</v-card-title>
+          <v-list-item v-for="todo in todos" :key="todo.id">
+            <v-li class="list-group-item list-group-item-action" v-if="todo.completed">
+              題名:{{ todo.name }}
+              <hr />
+              内容:{{ todo.description }}
+              <hr />
+              <v-btn v-on:click="ClickDelete(todo.id)">削除</v-btn>
+            </v-li>
           </v-list-item>
         </v-card>
       </template>
@@ -46,25 +57,35 @@
 
 <script setup lang="ts">
 import { API } from 'aws-amplify'
-import { ref } from 'vue'
-import { createTodo, deleteTodo } from './graphql/mutations'
-import type { CreateTodoMutation, DeleteTodoInput, DeleteTodoMutation } from './API'
+import { reactive, ref, toRefs } from 'vue'
+import { createTodo, deleteTodo, updateTodo } from './graphql/mutations'
+import type {
+  Todo,
+  CreateTodoMutation,
+  DeleteTodoInput,
+  DeleteTodoMutation,
+  UpdateTodoMutation,
+  UpdateTodoInput
+} from './API'
 import { Authenticator } from '@aws-amplify/ui-vue'
 import '@aws-amplify/ui-vue/styles.css'
 import { listTodos } from './graphql/queries'
 import { GraphQLQuery } from '@aws-amplify/api'
 
-type Todo = {
-  id: string
-  name: string
-  description?: string | null
-}
-const name = ref('')
-const description = ref('')
+// const name = ref('')
+// const description = ref('')
+// const completed = ref(false)
+const todo = reactive({
+  name: '',
+  description: '',
+  completed: false
+})
+let { name, description } = toRefs(todo)
+
 const todos = ref<Todo[]>([])
 
 const getTodos = async () => {
-  const result: any = await API.graphql({
+  const result = await API.graphql({
     query: listTodos
   })
   if (result.data?.listTodos) {
@@ -75,8 +96,6 @@ const getTodos = async () => {
 }
 
 const ClickCreate = async () => {
-  if (!name.value || !description.value) return
-  const todo = { name: name.value, description: description.value }
   await API.graphql<GraphQLQuery<CreateTodoMutation>>({
     query: createTodo,
     variables: { input: todo }
@@ -96,8 +115,26 @@ const ClickDelete = async (todoId: string) => {
     query: deleteTodo,
     variables: { input: todoDetails }
   })
-  let todo = result.data.deleteTodo
-  todos.value = todos.value.filter((td) => td.id != todo.id)
+  let TodoDelete = result.data.deleteTodo
+  todos.value = todos.value.filter((td) => td.id != TodoDelete.id)
 }
+
+const CompletedTodo = async (todoUpdate: Todo) => {
+  const updateTodoDetail: UpdateTodoInput = {
+    id: todoUpdate.id,
+    name: todoUpdate.name,
+    description: todoUpdate.description,
+    completed: true
+  }
+
+  const result = await API.graphql<GraphQLQuery<UpdateTodoMutation>>({
+    query: updateTodo,
+    variables: { input: updateTodoDetail }
+  })
+  let todo = result.data.updateTodo
+  todos.value = todos.value.filter((td) => td.id != todo.id)
+  getTodos()
+}
+
 getTodos()
 </script>
