@@ -71,7 +71,7 @@ import type {
 import { Authenticator } from '@aws-amplify/ui-vue'
 import '@aws-amplify/ui-vue/styles.css'
 import { listTodos } from './graphql/queries'
-import { GraphQLQuery,GraphQLResult } from '@aws-amplify/api'
+import type { GraphQLQuery, GraphQLResult } from '@aws-amplify/api'
 
 const todo = reactive({
   name: '',
@@ -83,9 +83,9 @@ let { name, description } = toRefs(todo)
 const todos = ref<Todo[]>([])
 
 const getTodos = async () => {
-  const result = await API.graphql({
+  const result = (await API.graphql({
     query: listTodos
-  }) as GraphQLResult<ListTodosQuery>;
+  })) as GraphQLResult<ListTodosQuery>
   if (result.data?.listTodos) {
     todos.value = result.data.listTodos.items as Todo[]
   } else {
@@ -109,7 +109,7 @@ const ClickDelete = async (todoId: string) => {
     id: todoId
   }
 
-  const result = await API.graphql<GraphQLQuery<DeleteTodoMutation>>({
+  const result: any | null | undefined = await API.graphql<GraphQLQuery<DeleteTodoMutation>>({
     query: deleteTodo,
     variables: { input: todoDetails }
   })
@@ -125,7 +125,7 @@ const CompletedTodo = async (todoUpdate: Todo) => {
     completed: true
   }
 
-  const result = await API.graphql<GraphQLQuery<UpdateTodoMutation>>({
+  const result: any | undefined = await API.graphql<GraphQLQuery<UpdateTodoMutation>>({
     query: updateTodo,
     variables: { input: updateTodoDetail }
   })
