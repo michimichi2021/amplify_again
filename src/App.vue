@@ -61,6 +61,7 @@ import { reactive, ref, toRefs } from 'vue'
 import { createTodo, deleteTodo, updateTodo } from './graphql/mutations'
 import type {
   Todo,
+  ListTodosQuery,
   CreateTodoMutation,
   DeleteTodoInput,
   DeleteTodoMutation,
@@ -70,11 +71,8 @@ import type {
 import { Authenticator } from '@aws-amplify/ui-vue'
 import '@aws-amplify/ui-vue/styles.css'
 import { listTodos } from './graphql/queries'
-import { GraphQLQuery } from '@aws-amplify/api'
+import { GraphQLQuery,GraphQLResult } from '@aws-amplify/api'
 
-// const name = ref('')
-// const description = ref('')
-// const completed = ref(false)
 const todo = reactive({
   name: '',
   description: '',
@@ -87,7 +85,7 @@ const todos = ref<Todo[]>([])
 const getTodos = async () => {
   const result = await API.graphql({
     query: listTodos
-  })
+  }) as GraphQLResult<ListTodosQuery>;
   if (result.data?.listTodos) {
     todos.value = result.data.listTodos.items as Todo[]
   } else {

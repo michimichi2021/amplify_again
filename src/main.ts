@@ -4,6 +4,7 @@ import App from './App.vue'
 import router from './router'
 import { Amplify } from 'aws-amplify'
 import awsExports from './aws-exports'
+import { defineComponent } from 'vue' // こちらを追加
 
 // Vuetify
 import 'vuetify/styles'

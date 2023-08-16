@@ -11,4 +11,12 @@
   "compilerOptions": {
     "skipLibCheck": true,
   },
+  "include": [
+    "./src/js/**/*.ts",
+    "./src/js/**/*.tsx",
+    "./src/js/**/*.vue",
+    "./src/@types/**/*.ts", // これを追加
+    "tests/**/*.ts",
+    "tests/**/*.tsx",
+  ],
 }
