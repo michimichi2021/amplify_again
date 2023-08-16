@@ -1,10 +1,9 @@
 import './assets/main.css'
 import { createApp } from 'vue'
-import App from './App.vue'
+import HomeView from './views/HomeView.vue'
 import router from './router'
 import { Amplify } from 'aws-amplify'
 import awsExports from './aws-exports'
-import { defineComponent } from 'vue' // こちらを追加
 
 // Vuetify
 import 'vuetify/styles'
@@ -19,7 +18,7 @@ const vuetify = createVuetify({
 
 Amplify.configure(awsExports)
 
-const app = createApp(App)
+const app = createApp(HomeView)
 
 app.use(router)
 app.use(vuetify)
