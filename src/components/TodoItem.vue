@@ -1,38 +1,81 @@
 <template>
-  <div id="app" class="mx-auto mt-5">
-    <div v-if="!user.username">
-      <div v-if="isSignUpMode">新規登録画面</div>
-      <div v-if="!isSignUpMode">ログイン画面</div>
+  <v-container id="app" class="mx-auto mt-5">
+    <v-container v-if="!user.username">
+      <v-card-title v-if="isSignUpMode">新規登録画面</v-card-title>
+      <v-card-title v-if="!isSignUpMode">ログイン画面</v-card-title>
       <v-btn class="mr-2" color="success" v-on:click="toggleSignUpMode"
         >切り替えボタン ログイン/新規登録</v-btn
       >
-      <div class="mt-5">
-        <div v-if="isSignUpMode">
-          <input v-model="username" placeholder="Username" />
-          <input v-if="isSignUpMode" v-model="email" placeholder="Email" />
-          <input v-model="password" placeholder="Password" type="password" />
-          <v-btn class="mr-2" color="success" v-on:click="signUp(username, email, password)"
-            >新規登録</v-btn
-          >
-        </div>
-        <div v-if="!isSignUpMode">
-          <input v-model="username" placeholder="Username" />
-          <input v-model="password" placeholder="Password" type="password" />
-          <v-btn class="mr-2" color="success" v-on:click="signIn(username, password)"
-            >ログイン</v-btn
-          >
-        </div>
-        <div v-if="!isConfirmationMode && isSignUpMode">
-          <input v-model="confirmationCode" placeholder="Confirmation Code" />
-          <v-btn color="success" v-on:click="confirmSignUp(username, confirmationCode)"
-            >2段階認証する</v-btn
-          >
-        </div>
-      </div>
-    </div>
-    <div v-if="user.username">
-      <v-title> Hello {{ user.username }}! </v-title>
-      <v-btn v-on:click="signOut">Sign Out</v-btn>
+      <v-container class="mt-5">
+        <v-container v-if="isSignUpMode">
+          <v-row>
+            <v-col cols="12" md="3">
+              <v-text-field v-model="username" :counter="10" label="名前" required></v-text-field>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field v-model="email" label="メールアドレス" required></v-text-field>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="password"
+                :counter="10"
+                label="パスワード"
+                required
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-btn
+                class="mr-2 mx-auto"
+                color="success"
+                v-on:click="signUp(username, email, password)"
+                >新規登録</v-btn
+              >
+            </v-col>
+          </v-row>
+        </v-container>
+        <v-container v-if="!isSignUpMode">
+          <v-row>
+            <v-col cols="12" md="3">
+              <v-text-field v-model="username" :counter="10" label="名前" required></v-text-field>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="password"
+                :counter="10"
+                label="パスワード"
+                required
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-btn class="mr-2" color="success" v-on:click="signIn(username, password)"
+                >ログイン</v-btn
+              >
+            </v-col>
+          </v-row>
+        </v-container>
+        <v-container v-if="!isConfirmationMode && isSignUpMode">
+          <v-row>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="confirmationCode"
+                :counter="10"
+                label="確認コード"
+                required
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-btn color="success" v-on:click="confirmSignUp(username, confirmationCode)"
+                >2段階認証する</v-btn
+              >
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-container>
+    </v-container>
+    <v-container v-if="user.username">
+      <v-card-title>
+        Hello {{ user.username }}! <v-btn v-on:click="signOut">Sign Out</v-btn></v-card-title
+      >
       <v-card class="mx-auto mt-10" max-width="1000">
         <v-card-title class="text-center">Todo App</v-card-title>
         <v-form>
@@ -79,8 +122,8 @@
           </li>
         </v-list-item>
       </v-card>
-    </div>
-  </div>
+    </v-container>
+  </v-container>
 </template>
 
 <script setup lang="ts">
